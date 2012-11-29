@@ -29,7 +29,7 @@ public class GUI
 
 	//  You will need to change the following since it is the path on Prof's computer.
 		
-		String fileName = "C:\\Program Files\\eclipse\\workspace\\2012\\src\\a3\\inputFile.txt";
+		String fileName = "./inputFile.txt";
 		panel = new A3Panel(fileName);
 		panel.setBorder( BorderFactory.createRaisedBevelBorder()  );
 		frame.add( panel);
