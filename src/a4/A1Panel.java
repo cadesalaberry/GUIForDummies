@@ -1,187 +1,184 @@
 package a4;
 
 import javax.swing.*;
-import javax.swing.text.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
 import java.math.*;
 
-//public enum Operator{ADD,SUBTRACT,MULTIPLY,DIVIDE}
+public class A1Panel extends JPanel implements ActionListener {
 
-public class A1Panel extends JPanel implements ActionListener
-{
-	int yIndex = 0;
-	
-	//Terxt Fields
-	JTextField first;
-	JTextField second;
+	private int yIndex = 0;
+	private final int WIDTH_OF_TEXT_BOX = 20;
 
-	//Various labels
+	private enum Operator {
+		ADD, DIVIDE, MULTIPLY, NONE, SUBTRACT
+	};
+
+	// Text Fields.
+	JTextField firstField;
+	JTextField secondField;
+
+	// Labels.
 	JLabel firstLabel;
 	JLabel secondLabel;
 	JLabel result;
 
-	//Computation values
-	BigInteger argOne;
-	BigInteger argTwo;
-	BigInteger argResult;
+	// The radio buttons to use.
+	ButtonGroup group = new ButtonGroup();
+	JRadioButton add;
+	JRadioButton subtract;
+	JRadioButton multiply;
+	JRadioButton divide;
+	Operator operator = Operator.NONE;
 
-	//For the action performed
-	Boolean addBoolean = false;
-	Boolean subtractBoolean = false;
-	Boolean multiplyBoolean = false;
-	Boolean divideBoolean = false;
-
-	//The buttons to use
-	JRadioButton addButton;
-	JRadioButton subtractButton;
-	JRadioButton multiplyButton;
-	JRadioButton divideButton;
+	// The useless compute button.
 	JButton compute;
-	
 
-	public A1Panel()
-	{
-		//Setting up the layout
+	public A1Panel() {
+		// Setting up the layout
 		this.setLayout(new GridBagLayout());
 
-		//First Arguement label
+		// Defines the components of the GUI in-order.
 		firstLabel = new JLabel("First Number: ");
-		addJButton(firstLabel);
-
-		//First text field for the first arguement
-		first = new JTextField(50);
-		addJButton(first);
-
-		//Second Arguement label
+		firstField = new JTextField("Enter a value", WIDTH_OF_TEXT_BOX);
 		secondLabel = new JLabel("Second Number: ");
-		addJButton(secondLabel);
-
-		//Second arguement field
-		second = new JTextField(50);
-		addJButton(second);
-
-		//Listeners for the two text fields
-		first.addActionListener(this);
-		second.addActionListener(this);
-
-		//Initialising the add Radio Button
-		addButton = new JRadioButton("Add");
-		addJButton(addButton);
-
-		//Initialising the subtract Radio Button
-		subtractButton = new JRadioButton("Substract");
-		addJButton(subtractButton);
-
-		//Initialising the multiply Radio Button
-		multiplyButton = new JRadioButton("Multiply");
-		addJButton(multiplyButton);
-
-		//Initialising the subtract Radio Button
-		divideButton = new JRadioButton("Divide");
-		addJButton(divideButton);
-
-		//The compute button
+		secondField = new JTextField("Enter a value", WIDTH_OF_TEXT_BOX);
+		add = new JRadioButton("Add");
+		subtract = new JRadioButton("Substract");
+		multiply = new JRadioButton("Multiply");
+		divide = new JRadioButton("Divide");
 		compute = new JButton("Compute");
-		addJButton(compute);
+		result = new JLabel("Enter values in the fields.");
 
-		//Add action listener for the compute button
-		compute.addActionListener(this);
-	
-		//Add the Radio Buttons to a button group
-		ButtonGroup group = new ButtonGroup();
-		group.add(addButton);
-		group.add(subtractButton);
-		group.add(multiplyButton);
-		group.add(divideButton);
+		addComponentToScreen(firstLabel);
+		addComponentToScreen(firstField);
+		addComponentToScreen(secondLabel);
+		addComponentToScreen(secondField);
+		addComponentToScreen(add);
+		addComponentToScreen(subtract);
+		addComponentToScreen(multiply);
+		addComponentToScreen(divide);
+		addComponentToScreen(compute);
+		addComponentToScreen(result);
 
-		//Adding an action listener for each Radio button
-		addButton.addActionListener(this);
-		subtractButton.addActionListener(this);
-		multiplyButton.addActionListener(this);
-		divideButton.addActionListener(this);
-
-		//The result label
-		result = new JLabel("0");
-		addJButton(result);
 	}
 
-	public void addJButton(Component b){
+	public void actionPerformed(ActionEvent e) {
+
+		// Gets the button that generated the event.
+		Object button = e.getSource();
+
+		if (button instanceof JRadioButton) {
+			operator = getOperatorAccordingToButton(button);
+
+		}
 		
+		// Initialises the two integers to zero.
+		BigInteger fistBigInteger = new BigInteger("0");
+		BigInteger secondBigInteger = new BigInteger("0");
+
+		// Does the computation if the input is valid.
+		try {
+
+			fistBigInteger = new BigInteger(firstField.getText());
+			secondBigInteger = new BigInteger(secondField.getText());
+
+			result.setText(getComputationResult(operator, fistBigInteger,
+					secondBigInteger));
+
+		} catch (Exception exception) {
+			result.setText("Check Input.");
+		}
+
+	}
+
+	/**
+	 * Adds the component to the Graphical User Interface. Each component will
+	 * be added above the other.
+	 * 
+	 * @param b
+	 */
+	public void addComponentToScreen(Component b) {
+
+		// Defines the graphical constraints.
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
 		c.gridy = yIndex;
+
+		// Groups all the RadioButtons together.
+		if (b instanceof JRadioButton) {
+			group.add((JRadioButton) b);
+
+		}
+		// Makes the action on the button detectable.
+		if (b instanceof AbstractButton) {
+			((AbstractButton) b).addActionListener(this);
+		}
+
+		// Adds the component to the screen with the predefined constraints.
 		add(b, c);
+
+		// Sets the current row to be occupied. the next element will be on the
+		// next row.
 		yIndex++;
 	}
 
-	public void actionPerformed(ActionEvent e) 
-	{
-		argOne = new BigInteger(first.getText());
-		argTwo = new BigInteger(second.getText());	
-		
-		//These if/else if statements are checking to see which Radio Button is selected
-			if (e.equals(addButton))
-			{
-				addBoolean = true;
-				subtractBoolean = false;
-				multiplyBoolean = false;
-				divideBoolean = false;
-			}
+	/**
+	 * Determines what value the operator should be assigned according to the
+	 * source object.
+	 * 
+	 * @param src
+	 * @return
+	 */
+	private Operator getOperatorAccordingToButton(Object src) {
 
-		else if (e.equals(subtractButton))
-			{
-				addBoolean = false;
-				subtractBoolean = true;
-				multiplyBoolean = false;
-				divideBoolean = false;
-			}	
-			
-		else if (e.equals(multiplyButton))
-			{
-				addBoolean = false;
-				subtractBoolean = false;
-				multiplyBoolean = true;
-				divideBoolean = false;
-			}
+		Operator operator;
 
-		else if (e.equals(divideButton))
-			{
-				addBoolean = false;
-				subtractBoolean = false;
-				multiplyBoolean = false;
-				divideBoolean = true;
-			}
-		//These else if statements will perform the actual computation and display in the result label based on which radio button was pressed
-		else if (e.getSource() == compute && addBoolean)
-		{
-		
-			argResult = argOne.add(argTwo);
-			result.setText(argResult.toString());
+		if (src.equals(add)) {
+			operator = Operator.ADD;
+
+		} else if (src.equals(subtract)) {
+			operator = Operator.SUBTRACT;
+
+		} else if (src.equals(multiply)) {
+			operator = Operator.MULTIPLY;
+
+		} else if (src.equals(divide)) {
+			operator = Operator.DIVIDE;
+		} else {
+			operator = Operator.NONE;
 		}
 
-		else if (e.getSource() == compute && subtractBoolean)
-		{
-			
-			argResult = argOne.subtract(argTwo);
-			result.setText(argResult.toString());
+		return operator;
+	}
+
+	private String getComputationResult(Operator operator, BigInteger first,
+			BigInteger second) {
+		String result = "";
+		switch (operator) {
+		case ADD:
+			result = first.add(second).toString();
+			break;
+
+		case SUBTRACT:
+			result = first.subtract(second).toString();
+			break;
+
+		case MULTIPLY:
+			result = first.multiply(second).toString();
+			break;
+
+		case DIVIDE:
+			result = first.divide(second).toString();
+			break;
+
+		case NONE:
+			result = "Select an operation.";
+			break;
 		}
 
-		else if (e.getSource() == compute && multiplyBoolean)
-		{
-
-			argResult = argOne.multiply(argTwo);
-			result.setText(argResult.toString());
-		}
-
-		else if (e.getSource() == compute && divideBoolean)
-		{
-
-			argResult = argOne.divide(argTwo);
-			result.setText(argResult.toString());
-		}
+		return result;
 	}
 }
