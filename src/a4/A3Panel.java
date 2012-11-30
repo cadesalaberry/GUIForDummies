@@ -4,12 +4,11 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
-import javax.swing.AbstractButton;
-import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -18,47 +17,57 @@ import javax.swing.JTextField;
 import a3.AutoComplete;
 import a3.Trie;
 
-public class A3Panel extends JPanel implements ActionListener{
-	
+public class A3Panel extends JPanel implements KeyListener {
+
 	private static final long serialVersionUID = -7696091701690806729L;
-	private static final int WIDTH_OF_TEXT_BOX = 15;
+	private static final int WIDTH_OF_TEXT_BOX = 20;
 	private ArrayList<String> words = new ArrayList<>();
 	private Trie suggestions = new Trie();
 	private int yIndex = 0;
-	
+
 	private JTextField inputField;
-	private JButton getSuggestionsButton;
-	private JTextField infoField;
+	private JLabel title;
 	private JTextArea textArea;
 	private JScrollPane scrollArea;
-	
+
 	public A3Panel(String fileName) {
-		
+
 		suggestions = getSuggestionTrieFromFile(fileName);
-		
+
 		// Setting up the layout
 		this.setLayout(new GridBagLayout());
-		
+
+		title = new JLabel("Dynamic AutoComplete");
 		inputField = new JTextField(WIDTH_OF_TEXT_BOX);
-		getSuggestionsButton = new JButton("Get Suggestions");
-		infoField = new JTextField("^ Type in a word above ^" ,WIDTH_OF_TEXT_BOX);
-		infoField.setEditable(false);
-		textArea = new JTextArea(10,WIDTH_OF_TEXT_BOX);
-		scrollArea = new JScrollPane(textArea);
-		
+		textArea = new JTextArea(12, WIDTH_OF_TEXT_BOX);
+		textArea.setText("/**\n * You can add words to \n * the suggestion list \n"
+						+ " * by pressing enter at \n * the end of the word.\n */");
+		scrollArea = new JScrollPane(textArea,20,31);
+
+		addComponentToScreen(title);
 		addComponentToScreen(inputField);
-		addComponentToScreen(getSuggestionsButton);
-		addComponentToScreen(infoField);
 		addComponentToScreen(scrollArea);
 	}
-	
-	
-	public void actionPerformed(ActionEvent e) {
-		
-		textArea.setBackground(Color.LIGHT_GRAY);
-		textArea.setText(getStringRepresentationOf(suggestions));
+
+	public void keyReleased(KeyEvent e) {
+
+		// Adds a word to the suggestion list if enter is pressed.
+		if (e.getExtendedKeyCode() == KeyEvent.VK_ENTER) {
+			suggestions.insert(inputField.getText());
+		}
+
+		// Gets the suggestions to display from the trie.
+		String prefix = inputField.getText();
+		ArrayList<String> matchingSuggestions = suggestions
+				.getAllPrefixMatches(prefix);
+
+		// Displays the suggestions on the screen.
+		textArea.setText("");
+		for (String suggestion : matchingSuggestions) {
+			textArea.append(suggestion + "\n");
+		}
 	}
-	
+
 	/**
 	 * Reads the file, and put all the words in a trie.
 	 * 
@@ -68,21 +77,13 @@ public class A3Panel extends JPanel implements ActionListener{
 	private Trie getSuggestionTrieFromFile(String fileName) {
 		words = AutoComplete.readWordsFromFile(fileName);
 		Trie trie = new Trie();
-		
-		for(String word : words){
+
+		for (String word : words) {
 			trie.insert(word);
 		}
 		return trie;
 	}
 
-	private String getStringRepresentationOf(Trie trie){
-		String result = "";
-		
-		for (String suggestion : trie.getAllPrefixMatches("")){
-			result += suggestion + "\n";
-		}
-		return result;
-	}
 	/**
 	 * Adds the component to the Graphical User Interface. Each component will
 	 * be added above the other.
@@ -97,11 +98,13 @@ public class A3Panel extends JPanel implements ActionListener{
 		c.gridx = 0;
 		c.gridy = yIndex;
 
-		
-		if (b instanceof AbstractButton) {
-			// Makes the action on the button detectable.
-			((AbstractButton) b).addActionListener(this);
-		}
+			if (b instanceof JTextField) {
+				((JTextField) b).addKeyListener(this);
+				((JTextField) b)
+				.setToolTipText("You can add word to the suggestion list"
+						+ " by pressing enter at the end of the word.");
+			}
+			
 
 		// Adds the component to the screen with the predefined constraints.
 		add(b, c);
@@ -109,5 +112,17 @@ public class A3Panel extends JPanel implements ActionListener{
 		// Sets the current row to be occupied. the next element will be on the
 		// next row.
 		yIndex++;
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 }

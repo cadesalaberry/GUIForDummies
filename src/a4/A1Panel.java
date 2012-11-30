@@ -6,12 +6,12 @@ import java.awt.event.*;
 
 import java.math.*;
 
-public class A1Panel extends JPanel implements ActionListener {
+public class A1Panel extends JPanel implements ActionListener, KeyListener {
 
 	private static final long serialVersionUID = 7581649428792952125L;
-	
+
 	private int yIndex = 0;
-	private final int WIDTH_OF_TEXT_BOX = 12;
+	private final int WIDTH_OF_TEXT_BOX = 20;
 
 	private enum Operator {
 		ADD, DIVIDE, MULTIPLY, NONE, SUBTRACT
@@ -35,7 +35,7 @@ public class A1Panel extends JPanel implements ActionListener {
 	Operator operator = Operator.NONE;
 
 	// The close to useless compute button.
-	JButton compute;
+	JButton evaluate;
 
 	public A1Panel() {
 		// Setting up the layout
@@ -50,7 +50,7 @@ public class A1Panel extends JPanel implements ActionListener {
 		subtract = new JRadioButton("Substract");
 		multiply = new JRadioButton("Multiply");
 		divide = new JRadioButton("Divide");
-		compute = new JButton("Compute");
+		evaluate = new JButton("Evaluate");
 		result = new JTextField("Enter values in the fields.");
 		result.setEditable(false);
 
@@ -62,34 +62,38 @@ public class A1Panel extends JPanel implements ActionListener {
 		addComponentToScreen(subtract);
 		addComponentToScreen(multiply);
 		addComponentToScreen(divide);
-		addComponentToScreen(compute);
+		addComponentToScreen(evaluate);
 		addComponentToScreen(result);
 
 	}
 
 	public void actionPerformed(ActionEvent e) {
 
-		// Gets the button that generated the event.
-		Object button = e.getSource();
-
-		if (button instanceof JRadioButton) {
-			operator = getOperatorAccordingToButton(button);
-
+		// Changes the operator if a RadioButton is touched.
+		if (e.getSource() instanceof JRadioButton) {
+			operator = getOperatorAccordingToButton(e.getSource());
 		}
-		
-		// Does the computation if the input is valid.
+
+		refreshComputationResult();
+	}
+
+	/**
+	 * Does the computation if the input is valid. Displays a warning otherwise.
+	 */
+	private void refreshComputationResult() {
+		//
 		try {
 
 			BigInteger fistBigInteger = new BigInteger(firstField.getText());
 			BigInteger secondBigInteger = new BigInteger(secondField.getText());
 
-			result.setText(getComputationResult(operator, fistBigInteger,
-					secondBigInteger));
+			String str = getComputationResult(operator, fistBigInteger,
+					secondBigInteger);
+			result.setText(str);
 
 		} catch (Exception exception) {
-			result.setText("Check Input.");
+			result.setText("Please check your input.");
 		}
-
 	}
 
 	/**
@@ -106,14 +110,16 @@ public class A1Panel extends JPanel implements ActionListener {
 		c.gridx = 0;
 		c.gridy = yIndex;
 
-		// Groups all the RadioButtons together.
-		if (b instanceof JRadioButton) {
-			group.add((JRadioButton) b);
-
-		}
 		// Makes the action on the button detectable.
 		if (b instanceof AbstractButton) {
 			((AbstractButton) b).addActionListener(this);
+			// Groups all the RadioButtons together.
+			if (b instanceof JRadioButton) {
+				group.add((JRadioButton) b);
+
+			}
+		} else if (b instanceof JTextField) {
+			((JTextField) b).addKeyListener(this);
 		}
 
 		// Adds the component to the screen with the predefined constraints.
@@ -174,10 +180,26 @@ public class A1Panel extends JPanel implements ActionListener {
 			break;
 
 		case NONE:
-			result = "Select an operation.";
+			result = "Please select an operation.";
 			break;
 		}
 
 		return result;
+	}
+
+	public void keyReleased(KeyEvent e) {
+		refreshComputationResult();
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }
